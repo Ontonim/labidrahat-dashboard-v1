@@ -4,12 +4,19 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Sidebar } from "@/components/dashboard/sidebar";
 import "./globals.css";
+import { Lato } from "next/font/google";
 import { TopBar } from "@/components/dashboard/topbar";
 
 interface User {
   email: string;
   name: string;
 }
+
+const lato = Lato({
+  subsets: ["latin"],
+  variable: "--font-lato",
+  weight: ["400", "700", "900"],
+});
 
 export default function RootLayout({
   children,
@@ -26,7 +33,7 @@ export default function RootLayout({
   };
 
   return (
-    <html lang="en">
+    <html className={lato.variable}>
       <body>
         <div className={darkMode ? "dark" : ""}>
           <div className="flex h-screen bg-background text-foreground">

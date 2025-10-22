@@ -5,6 +5,7 @@ import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Edit2, Trash2, Plus, Shield, PenTool, Search } from "lucide-react";
+import Link from "next/link";
 
 interface TeamMember {
   id: number;
@@ -92,10 +93,12 @@ export function TeamManagement() {
             Manage your team and assign roles
           </p>
         </div>
-        <Button className="bg-blue-600 hover:bg-blue-700 text-white gap-2">
-          <Plus className="w-4 h-4" />
-          Add Member
-        </Button>
+        <Link href={"/team/add"}>
+          <Button className="bg-blue-600 hover:bg-blue-700 text-white gap-2 cursor-pointer">
+            <Plus className="w-4 h-4" />
+            Add Member
+          </Button>
+        </Link>
       </div>
 
       <Input

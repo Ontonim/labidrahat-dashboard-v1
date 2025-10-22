@@ -5,6 +5,7 @@ import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Edit2, Trash2, Plus, Flag } from "lucide-react";
+import Link from "next/link";
 
 interface Task {
   id: number;
@@ -90,10 +91,12 @@ export function TaskManagement() {
           <h1 className="text-3xl font-bold text-white">Tasks</h1>
           <p className="text-slate-400 mt-1">Assign and track team tasks</p>
         </div>
-        <Button className="bg-blue-600 hover:bg-blue-700 text-white gap-2">
-          <Plus className="w-4 h-4" />
-          New Task
-        </Button>
+        <Link href={"/tasks/add"}>
+          <Button className="bg-blue-600 hover:bg-blue-700 text-white gap-2 cursor-pointer">
+            <Plus className="w-4 h-4" />
+            New Task
+          </Button>
+        </Link>
       </div>
 
       <Input

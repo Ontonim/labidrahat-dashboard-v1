@@ -4,7 +4,8 @@ import { useState } from "react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Edit2, Trash2, Eye, MessageCircle, Plus } from "lucide-react";
+import { Edit, Trash2, Eye, Plus } from "lucide-react";
+import Link from "next/link";
 
 interface BlogPost {
   id: number;
@@ -85,10 +86,12 @@ export function BlogManagement() {
           <h1 className="text-3xl font-bold text-white">Blog Posts</h1>
           <p className="text-slate-400 mt-1">Manage your blog content</p>
         </div>
-        <Button className="bg-blue-600 hover:bg-blue-700 text-white gap-2">
-          <Plus className="w-4 h-4" />
-          New Post
-        </Button>
+        <Link href={"/blog/add"}>
+          <Button className="bg-blue-600 hover:bg-blue-700 text-white gap-2 cursor-pointer">
+            <Plus className="w-4 h-4" />
+            New Post
+          </Button>
+        </Link>
       </div>
 
       {/* Filters */}
@@ -134,9 +137,7 @@ export function BlogManagement() {
                 <th className="px-6 py-3 text-left text-sm font-semibold text-slate-200">
                   Views
                 </th>
-                <th className="px-6 py-3 text-left text-sm font-semibold text-slate-200">
-                  Comments
-                </th>
+
                 <th className="px-6 py-3 text-left text-sm font-semibold text-slate-200">
                   Date
                 </th>
@@ -163,10 +164,7 @@ export function BlogManagement() {
                     <Eye className="w-4 h-4" />
                     {post.views}
                   </td>
-                  <td className="px-6 py-4 text-slate-300 flex items-center gap-1">
-                    <MessageCircle className="w-4 h-4" />
-                    {post.comments}
-                  </td>
+
                   <td className="px-6 py-4 text-slate-400">{post.date}</td>
                   <td className="px-6 py-4 flex gap-2">
                     <Button
@@ -174,7 +172,7 @@ export function BlogManagement() {
                       size="sm"
                       className="text-blue-400 hover:bg-slate-700"
                     >
-                      <Edit2 className="w-4 h-4" />
+                      <Edit className="w-4 h-4" />
                     </Button>
                     <Button
                       variant="ghost"

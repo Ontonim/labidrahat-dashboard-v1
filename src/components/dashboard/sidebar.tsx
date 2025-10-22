@@ -3,7 +3,6 @@
 import {
   LayoutDashboard,
   FileText,
-  BookOpen,
   Users,
   CheckSquare,
   Mail,
@@ -21,8 +20,7 @@ export function Sidebar({ currentPage, onPageChange }: SidebarProps) {
   const menuItems = [
     { id: "dashboard", label: "Dashboard", icon: LayoutDashboard },
     { id: "blog", label: "Blog Posts", icon: FileText },
-    { id: "research", label: "Research", icon: BookOpen },
-    { id: "team", label: "Team", icon: Users },
+    { id: "team", label: "Team Management", icon: Users },
     { id: "tasks", label: "Tasks", icon: CheckSquare },
     { id: "email", label: "Email & Newsletter", icon: Mail },
     { id: "comments", label: "Comments", icon: MessageSquare },
