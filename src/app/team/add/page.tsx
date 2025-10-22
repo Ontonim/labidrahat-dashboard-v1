@@ -1,7 +1,12 @@
+import AddMemberForm from "@/components/team/add-member/add-member-form";
 import React from "react";
 
 const AddTeamMember = () => {
-  return <div>this is team member adding page.</div>;
+  return (
+    <div>
+      <AddMemberForm />
+    </div>
+  );
 };
 
 export default AddTeamMember;

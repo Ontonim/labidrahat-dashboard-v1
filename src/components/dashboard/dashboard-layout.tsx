@@ -3,7 +3,6 @@
 import { useState } from "react";
 import { DashboardOverview } from "./overview";
 import { BlogManagement } from "../Blog/blogManagement";
-import { ResearchManagement } from "../research/research-management";
 import { TeamManagement } from "../team/team-management";
 import { TaskManagement } from "../task/task-management";
 import { EmailManagement } from "../email/email-management";
@@ -27,8 +26,6 @@ export function DashboardLayout({ user, onLogout }: DashboardLayoutProps) {
         return <DashboardOverview />;
       case "blog":
         return <BlogManagement />;
-      case "research":
-        return <ResearchManagement />;
       case "team":
         return <TeamManagement />;
       case "tasks":
