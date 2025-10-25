@@ -351,10 +351,15 @@
 
 // export default BlogEditor;
 
+import AddBlog from "@/components/Blog/AddBlog/AddBlog";
 import React from "react";
 
-const AddBlog = () => {
-  return <div>This New post section.. Under Development</div>;
+const Add = () => {
+  return (
+    <div>
+      <AddBlog />
+    </div>
+  );
 };
 
-export default AddBlog;
+export default Add;
