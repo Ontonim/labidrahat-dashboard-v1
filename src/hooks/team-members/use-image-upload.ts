@@ -16,7 +16,7 @@ export function useImageUpload() {
   });
   const [preview, setPreview] = useState<string | null>(null);
 
-  const uploadToCloudinary = useCallback(
+  const uploadToImgbb = useCallback(
     async (file: File): Promise<string | null> => {
       setUploadProgress({
         isUploading: true,
@@ -26,8 +26,9 @@ export function useImageUpload() {
 
       try {
         const formData = new FormData();
-        formData.append("file", file);
-        formData.append("upload_preset", "ml_default");
+        formData.append("image", file);
+
+        const apiKey = process.env.NEXT_PUBLIC_IMGBB_API_KEY;
 
         const xhr = new XMLHttpRequest();
         xhr.upload.addEventListener("progress", (e) => {
@@ -44,12 +45,13 @@ export function useImageUpload() {
           xhr.addEventListener("load", () => {
             if (xhr.status === 200) {
               const response = JSON.parse(xhr.responseText);
+              const imageUrl = response?.data?.url;
               setUploadProgress({
                 isUploading: false,
                 progress: 100,
                 error: null,
               });
-              resolve(response.secure_url);
+              resolve(imageUrl);
             } else {
               reject(new Error("Upload failed"));
             }
@@ -64,10 +66,7 @@ export function useImageUpload() {
             reject(new Error("Upload error"));
           });
 
-          xhr.open(
-            "POST",
-            "https://api.cloudinary.com/v1_1/w_1XwxTHKwCNFuoFp7Y3DiFV7QM/image/upload"
-          );
+          xhr.open("POST", `https://api.imgbb.com/1/upload?key=${apiKey}`);
           xhr.send(formData);
         });
       } catch (err) {
@@ -110,10 +109,10 @@ export function useImageUpload() {
       };
       reader.readAsDataURL(file);
 
-      const url = await uploadToCloudinary(file);
+      const url = await uploadToImgbb(file);
       return url;
     },
-    [uploadToCloudinary]
+    [uploadToImgbb]
   );
 
   const clearPreview = useCallback(() => {

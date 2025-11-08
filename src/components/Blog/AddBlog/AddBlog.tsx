@@ -79,6 +79,7 @@ export default function AddBlog() {
   const [content, setContent] = useState("");
   const [errors, setErrors] = useState<Record<string, string[]>>({});
   const [successMessage, setSuccessMessage] = useState("");
+  const [isUploading, setIsUploading] = useState(false);
   const formRef = useRef<HTMLFormElement>(null);
 
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -108,16 +109,51 @@ export default function AddBlog() {
     setSuccessMessage("");
   };
 
+  const uploadToImgbb = async (file: File): Promise<string | null> => {
+    try {
+      setIsUploading(true);
+      const formData = new FormData();
+      formData.append("image", file);
+
+      const response = await fetch(
+        `https://api.imgbb.com/1/upload?key=${process.env.NEXT_PUBLIC_IMGBB_API_KEY}`,
+        {
+          method: "POST",
+          body: formData,
+        }
+      );
+
+      const data = await response.json();
+      if (data.success) {
+        return data.data.url;
+      } else {
+        console.error("Upload failed:", data);
+        return null;
+      }
+    } catch (error) {
+      console.error("Error uploading image:", error);
+      return null;
+    } finally {
+      setIsUploading(false);
+    }
+  };
+
   async function handleSubmit(formData: FormData) {
     setErrors({});
     setSuccessMessage("");
 
-    // Add content to formData
-    formData.set("content", content);
-
-    // Add image file if exists
+    let imageUrl: string | null = null;
     if (imageFile) {
-      formData.set("image", imageFile);
+      imageUrl = await uploadToImgbb(imageFile);
+      if (!imageUrl) {
+        setErrors({ image: ["Image upload failed. Please try again."] });
+        return;
+      }
+    }
+
+    formData.set("content", content);
+    if (imageUrl) {
+      formData.set("image", imageUrl);
     }
 
     const result = await createBlogPost(formData);
@@ -125,7 +161,6 @@ export default function AddBlog() {
     if (result.success) {
       setSuccessMessage(result.message);
       handleReset();
-      // Optional: Redirect or show success notification
     } else {
       if (result.errors) {
         setErrors(result.errors);

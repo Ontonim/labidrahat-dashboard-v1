@@ -46,12 +46,7 @@ export function DashboardLayout({ user, onLogout }: DashboardLayoutProps) {
       <div className="flex h-screen bg-background text-foreground">
         <Sidebar currentPage={currentPage} onPageChange={setCurrentPage} />
         <div className="flex-1 flex flex-col overflow-hidden">
-          <TopBar
-            user={user}
-            onLogout={onLogout}
-            darkMode={darkMode}
-            onDarkModeToggle={() => setDarkMode(!darkMode)}
-          />
+          <TopBar user={user} />
           <main className="flex-1 overflow-auto">{renderPage()}</main>
         </div>
       </div>

@@ -1,6 +1,7 @@
 "use server";
 
 import { MemberFormData } from "@/types/team-members/team-members";
+import { universalApi } from "../universal-api";
 
 export async function addMember(data: MemberFormData) {
   try {
@@ -10,18 +11,26 @@ export async function addMember(data: MemberFormData) {
         error: "Missing required fields",
       };
     }
-
-    // TODO: Replace with your actual API
-    console.log("Adding member:", data);
-
-    await new Promise((resolve) => setTimeout(resolve, 1000));
+    console.log(data);
+    const result = await universalApi({
+      endpoint: "/members",
+      method: "POST",
+      data: data,
+      requireAuth: true,
+    });
+    if (!result.success) {
+      return {
+        success: false,
+        message: result.message || "Failed to create adding member",
+      };
+    }
 
     return {
       success: true,
-      message: "Member added successfully",
+      message: "Member added successfully!",
     };
   } catch (error) {
-    console.error("[v0] Error adding member:", error);
+    console.error("Error adding member:", error);
     return {
       success: false,
       error: "Failed to add member. Please try again.",

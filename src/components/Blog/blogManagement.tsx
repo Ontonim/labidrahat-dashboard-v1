@@ -1,82 +1,86 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Edit, Trash2, Eye, Plus } from "lucide-react";
+import {
+  Edit,
+  Trash2,
+  Eye,
+  Plus,
+  ChevronLeft,
+  ChevronRight,
+} from "lucide-react";
 import Link from "next/link";
-
-interface BlogPost {
-  id: number;
-  title: string;
-  status: "published" | "draft" | "archived";
-  comments: number;
-  views: number;
-  date: string;
-}
+import { Blog, getBlogs } from "@/actions/blogs/getBlogs";
+import { formatDate } from "@/utils/formatDate";
 
 export function BlogManagement() {
-  const [posts, setPosts] = useState<BlogPost[]>([
-    {
-      id: 1,
-      title: "10 Tips for Content Creation",
-      status: "published",
-      comments: 24,
-      views: 1250,
-      date: "2024-10-15",
-    },
-    {
-      id: 2,
-      title: "Getting Started with AI",
-      status: "published",
-      comments: 18,
-      views: 890,
-      date: "2024-10-12",
-    },
-    {
-      id: 3,
-      title: "Advanced Analytics Guide",
-      status: "draft",
-      comments: 0,
-      views: 0,
-      date: "2024-10-10",
-    },
-    {
-      id: 4,
-      title: "Social Media Strategy 2024",
-      status: "published",
-      comments: 32,
-      views: 2100,
-      date: "2024-10-08",
-    },
-  ]);
+  const [posts, setPosts] = useState<Blog[]>([]);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const [totalPosts, setTotalPosts] = useState(0);
+  const [isLoading, setIsLoading] = useState(false);
+  const postsPerPage = 10;
 
-  const [searchTerm, setSearchTerm] = useState("");
-  const [filterStatus, setFilterStatus] = useState<
-    "all" | "published" | "draft" | "archived"
-  >("all");
+  useEffect(() => {
+    const fetchBlogs = async () => {
+      setIsLoading(true);
+      try {
+        const response = await getBlogs(currentPage, postsPerPage);
+        if (response?.success) {
+          setPosts(response.data || []);
+          setTotalPages(response.meta?.totalPages || 1);
+          setTotalPosts(response.meta?.total || 0);
+        }
+      } catch (error) {
+        console.error("Error fetching blogs:", error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    fetchBlogs();
+  }, [currentPage]);
 
-  const filteredPosts = posts.filter((post) => {
-    const matchesSearch = post.title
-      .toLowerCase()
-      .includes(searchTerm.toLowerCase());
-    const matchesStatus =
-      filterStatus === "all" || post.status === filterStatus;
-    return matchesSearch && matchesStatus;
-  });
-
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case "published":
-        return "bg-green-500/20 text-green-400";
-      case "draft":
-        return "bg-yellow-500/20 text-yellow-400";
-      case "archived":
-        return "bg-gray-500/20 text-gray-400";
-      default:
-        return "";
+  const handlePageChange = (page: number) => {
+    if (page >= 1 && page <= totalPages) {
+      setCurrentPage(page);
     }
+  };
+
+  const getPageNumbers = () => {
+    const pages = [];
+    const maxVisiblePages = 5;
+
+    if (totalPages <= maxVisiblePages) {
+      for (let i = 1; i <= totalPages; i++) {
+        pages.push(i);
+      }
+    } else {
+      if (currentPage <= 3) {
+        for (let i = 1; i <= 4; i++) {
+          pages.push(i);
+        }
+        pages.push("...");
+        pages.push(totalPages);
+      } else if (currentPage >= totalPages - 2) {
+        pages.push(1);
+        pages.push("...");
+        for (let i = totalPages - 3; i <= totalPages; i++) {
+          pages.push(i);
+        }
+      } else {
+        pages.push(1);
+        pages.push("...");
+        for (let i = currentPage - 1; i <= currentPage + 1; i++) {
+          pages.push(i);
+        }
+        pages.push("...");
+        pages.push(totalPages);
+      }
+    }
+
+    return pages;
   };
 
   return (
@@ -84,7 +88,9 @@ export function BlogManagement() {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold text-white">Blog Posts</h1>
-          <p className="text-slate-400 mt-1">Manage your blog content</p>
+          <p className="text-slate-400 mt-1">
+            Manage your blog content ({totalPosts} total posts)
+          </p>
         </div>
         <Link href={"/blog/add"}>
           <Button className="bg-blue-600 hover:bg-blue-700 text-white gap-2 cursor-pointer">
@@ -92,34 +98,6 @@ export function BlogManagement() {
             New Post
           </Button>
         </Link>
-      </div>
-
-      {/* Filters */}
-      <div className="flex gap-4 flex-wrap">
-        <Input
-          placeholder="Search posts..."
-          value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
-          className="max-w-xs bg-slate-700 border-slate-600 text-white placeholder:text-slate-500"
-        />
-        <div className="flex gap-2">
-          {(["all", "published", "draft", "archived"] as const).map(
-            (status) => (
-              <Button
-                key={status}
-                variant={filterStatus === status ? "default" : "outline"}
-                className={
-                  filterStatus === status
-                    ? "bg-blue-600 hover:bg-blue-700"
-                    : "border-slate-600 text-slate-300 hover:bg-slate-700"
-                }
-                onClick={() => setFilterStatus(status)}
-              >
-                {status.charAt(0).toUpperCase() + status.slice(1)}
-              </Button>
-            )
-          )}
-        </div>
       </div>
 
       {/* Posts Table */}
@@ -137,7 +115,6 @@ export function BlogManagement() {
                 <th className="px-6 py-3 text-left text-sm font-semibold text-slate-200">
                   Views
                 </th>
-
                 <th className="px-6 py-3 text-left text-sm font-semibold text-slate-200">
                   Date
                 </th>
@@ -147,46 +124,125 @@ export function BlogManagement() {
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-700">
-              {filteredPosts.map((post) => (
-                <tr key={post.id} className="hover:bg-slate-700/50 transition">
-                  <td className="px-6 py-4 text-white">{post.title}</td>
-                  <td className="px-6 py-4">
-                    <span
-                      className={`px-3 py-1 rounded-full text-xs font-medium ${getStatusColor(
-                        post.status
-                      )}`}
-                    >
-                      {post.status.charAt(0).toUpperCase() +
-                        post.status.slice(1)}
-                    </span>
-                  </td>
-                  <td className="px-6 py-4 text-slate-300 flex items-center gap-1">
-                    <Eye className="w-4 h-4" />
-                    {post.views}
-                  </td>
-
-                  <td className="px-6 py-4 text-slate-400">{post.date}</td>
-                  <td className="px-6 py-4 flex gap-2">
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      className="text-blue-400 hover:bg-slate-700"
-                    >
-                      <Edit className="w-4 h-4" />
-                    </Button>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      className="text-red-400 hover:bg-slate-700"
-                    >
-                      <Trash2 className="w-4 h-4" />
-                    </Button>
+              {isLoading ? (
+                <tr>
+                  <td
+                    colSpan={5}
+                    className="px-6 py-8 text-center text-slate-400"
+                  >
+                    Loading...
                   </td>
                 </tr>
-              ))}
+              ) : posts.length === 0 ? (
+                <tr>
+                  <td
+                    colSpan={5}
+                    className="px-6 py-8 text-center text-slate-400"
+                  >
+                    No blog posts found
+                  </td>
+                </tr>
+              ) : (
+                posts.map((post) => (
+                  <tr
+                    key={post._id}
+                    className="hover:bg-slate-700/50 transition"
+                  >
+                    <td className="px-6 py-4 text-white">{post?.title}</td>
+                    <td className="px-6 py-4">
+                      <span
+                        className={`px-3 py-1 rounded-full text-xs font-medium`}
+                      >
+                        {post?.status}
+                      </span>
+                    </td>
+                    <td className="px-6 py-4 text-slate-300 flex items-center gap-1">
+                      <Eye className="w-4 h-4" />
+                      Under maintenance
+                    </td>
+                    <td className="px-6 py-4 text-slate-400">
+                      {formatDate(post?.createdAt)}
+                    </td>
+                    <td className="px-6 py-4 flex gap-2">
+                      <Link href={`/blog/edit/${post._id}`}>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="text-blue-400 hover:bg-slate-700"
+                        >
+                          <Edit className="w-4 h-4" />
+                        </Button>
+                      </Link>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="text-red-400 hover:bg-slate-700"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </Button>
+                    </td>
+                  </tr>
+                ))
+              )}
             </tbody>
           </table>
         </div>
+
+        {/* Pagination */}
+        {totalPages > 1 && (
+          <div className="px-6 py-4 border-t border-slate-700 flex items-center justify-between">
+            <div className="text-sm text-slate-400">
+              Page {currentPage} of {totalPages}
+            </div>
+
+            <div className="flex items-center gap-2">
+              {/* Previous Button */}
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => handlePageChange(currentPage - 1)}
+                disabled={currentPage === 1}
+                className="border-slate-600 text-slate-300 hover:bg-slate-700 disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                <ChevronLeft className="w-4 h-4" />
+              </Button>
+
+              {/* Page Numbers */}
+              {getPageNumbers().map((page, index) =>
+                typeof page === "number" ? (
+                  <Button
+                    key={index}
+                    variant="outline"
+                    size="sm"
+                    onClick={() => handlePageChange(page)}
+                    className={`border-slate-600 min-w-[40px] ${
+                      currentPage === page
+                        ? "bg-blue-600 text-white border-blue-600 hover:bg-blue-700"
+                        : "text-slate-300 hover:bg-slate-700"
+                    }`}
+                  >
+                    {page}
+                  </Button>
+                ) : (
+                  <span key={index} className="px-2 text-slate-400">
+                    {page}
+                  </span>
+                )
+              )}
+
+              {/* Next Button */}
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => handlePageChange(currentPage + 1)}
+                disabled={currentPage === totalPages}
+                className="border-slate-600 text-slate-300 hover:bg-slate-700 disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                <ChevronRight className="w-4 h-4" />
+              </Button>
+            </div>
+          </div>
+        )}
       </Card>
     </div>
   );

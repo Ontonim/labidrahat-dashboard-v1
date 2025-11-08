@@ -1,167 +1,179 @@
 "use client";
 
+import { useState, useEffect } from "react";
 import { Card } from "@/components/ui/card";
 import {
-  LineChart,
-  Line,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  Tooltip,
-  ResponsiveContainer,
-  PieChart,
-  Pie,
-  Cell,
-} from "recharts";
-import {
+  Loader2,
   FileText,
   MessageSquare,
   Users,
-  CheckSquare,
   Mail,
-  TrendingUp,
+  AlertCircle,
+  CheckCircle,
+  XCircle,
 } from "lucide-react";
-
-const chartData = [
-  { name: "Jan", value: 500400 },
-  { name: "Feb", value: 303430 },
-  { name: "Mar", value: 234400 },
-  { name: "Apr", value: 27338 },
-  { name: "May", value: 194340 },
-  { name: "Jun", value: 233329 },
-];
-
-const pieData = [
-  { name: "Published", value: 45 },
-  { name: "Draft", value: 25 },
-  { name: "Archived", value: 30 },
-];
-
-const COLORS = ["#3b82f6", "#8b5cf6", "#ec4899"];
+import { DashboardStats } from "@/types/dashboard-overview/dashboard";
+import { getDashboardOverview } from "@/actions/dashboard-overview/dashboard";
 
 export function DashboardOverview() {
-  const stats = [
-    { label: "Blog Posts", value: "24", icon: FileText, color: "bg-blue-500" },
-    {
-      label: "Comments",
-      value: "156",
-      icon: MessageSquare,
-      color: "bg-purple-500",
-    },
-    { label: "Team Members", value: "8", icon: Users, color: "bg-pink-500" },
-    {
-      label: "Pending Tasks",
-      value: "12",
-      icon: CheckSquare,
-      color: "bg-green-500",
-    },
-    {
-      label: "Newsletter Subs",
-      value: "2.4K",
-      icon: Mail,
-      color: "bg-orange-500",
-    },
-    {
-      label: "Engagement Rate",
-      value: "8.2%",
-      icon: TrendingUp,
-      color: "bg-cyan-500",
-    },
-  ];
+  const [stats, setStats] = useState<DashboardStats | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    loadDashboard();
+  }, []);
+
+  const loadDashboard = async () => {
+    setLoading(true);
+    const result = await getDashboardOverview();
+    if (result.success && result.data) {
+      setStats(result.data);
+    }
+    setLoading(false);
+  };
+
+  if (loading) {
+    return (
+      <div className="p-8 flex items-center justify-center min-h-screen">
+        <div className="text-center">
+          <Loader2 className="w-8 h-8 animate-spin text-blue-500 mx-auto mb-2" />
+          <p className="text-slate-400">Loading dashboard...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (!stats) {
+    return (
+      <div className="p-8">
+        <p className="text-red-400">Failed to load dashboard data</p>
+      </div>
+    );
+  }
+
+  const totalComments =
+    stats.comments.pending + stats.comments.approved + stats.comments.rejected;
 
   return (
-    <div className="p-8 space-y-8">
+    <div className="p-8 space-y-6">
       <div>
-        <h1 className="text-3xl font-bold text-white mb-2">Dashboard</h1>
-        <p className="text-slate-400">
-          Welcome back! Here&apos;s your content overview.
+        <h1 className="text-3xl font-bold text-white">Dashboard Overview</h1>
+        <p className="text-slate-400 mt-1">
+          Welcome back! Here&apos;s what&apos;s happening
         </p>
       </div>
 
-      {/* Stats Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-        {stats.map((stat, index) => {
-          const Icon = stat.icon;
-          return (
-            <Card key={index} className="bg-slate-800 border-slate-700 p-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-slate-400 text-sm">{stat.label}</p>
-                  <p className="text-3xl font-bold text-white mt-2">
-                    {stat.value}
-                  </p>
-                </div>
-                <div className={`${stat.color} p-3 rounded-lg`}>
-                  <Icon className="w-6 h-6 text-white" />
-                </div>
-              </div>
-            </Card>
-          );
-        })}
-      </div>
-
-      {/* Charts */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      {/* Main Stats */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         <Card className="bg-slate-800 border-slate-700 p-6">
-          <h2 className="text-lg font-semibold text-white mb-4">
-            Last 6 Month Visitor
-          </h2>
-          <ResponsiveContainer width="100%" height={300}>
-            <LineChart data={chartData}>
-              <CartesianGrid strokeDasharray="3 3" stroke="#334155" />
-              <XAxis dataKey="name" stroke="#94a3b8" />
-              <YAxis stroke="#94a3b8" />
-              <Tooltip
-                contentStyle={{
-                  backgroundColor: "#1e293b",
-                  border: "1px solid #475569",
-                  borderRadius: "8px",
-                }}
-                labelStyle={{ color: "#e2e8f0" }}
-                formatter={(value) => [`${value}`, "visitor"]}
-              />
-              <Line
-                type="monotone"
-                dataKey="value"
-                stroke="#3b82f6"
-                strokeWidth={2}
-                dot={{ fill: "#3b82f6" }}
-              />
-            </LineChart>
-          </ResponsiveContainer>
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-slate-400 text-sm">Total Blogs</p>
+              <p className="text-3xl font-bold text-white mt-2">
+                {stats.totalBlogs.toLocaleString()}
+              </p>
+            </div>
+            <FileText className="w-12 h-12 text-blue-500 opacity-20" />
+          </div>
         </Card>
 
         <Card className="bg-slate-800 border-slate-700 p-6">
-          <h2 className="text-lg font-semibold text-white mb-4">Post Status</h2>
-          <ResponsiveContainer width="100%" height={300}>
-            <PieChart>
-              <Pie
-                data={pieData}
-                cx="50%"
-                cy="50%"
-                labelLine={false}
-                label={({ name, value }) => `${name}: ${value}`}
-                outerRadius={80}
-                fill="#8884d8"
-                dataKey="value"
-              >
-                {pieData.map((_, index) => (
-                  <Cell
-                    key={`cell-${index}`}
-                    fill={COLORS[index % COLORS.length]}
-                  />
-                ))}
-              </Pie>
-              <Tooltip
-                contentStyle={{
-                  backgroundColor: "#1e293b",
-                  border: "1px solid #475569",
-                  borderRadius: "8px",
-                }}
-                labelStyle={{ color: "#e2e8f0" }}
-              />
-            </PieChart>
-          </ResponsiveContainer>
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-slate-400 text-sm">Total Comments</p>
+              <p className="text-3xl font-bold text-white mt-2">
+                {totalComments.toLocaleString()}
+              </p>
+              <p className="text-slate-500 text-xs mt-1">
+                {stats.comments.pending} pending
+              </p>
+            </div>
+            <MessageSquare className="w-12 h-12 text-green-500 opacity-20" />
+          </div>
+        </Card>
+
+        <Card className="bg-slate-800 border-slate-700 p-6">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-slate-400 text-sm">Team Members</p>
+              <p className="text-3xl font-bold text-white mt-2">
+                {stats.totalMembers.toLocaleString()}
+              </p>
+            </div>
+            <Users className="w-12 h-12 text-purple-500 opacity-20" />
+          </div>
+        </Card>
+
+        <Card className="bg-slate-800 border-slate-700 p-6">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-slate-400 text-sm">Contact Messages</p>
+              <p className="text-3xl font-bold text-white mt-2">
+                {stats.totalContacts.toLocaleString()}
+              </p>
+            </div>
+            <Mail className="w-12 h-12 text-red-500 opacity-20" />
+          </div>
+        </Card>
+      </div>
+
+      {/* Secondary Stats */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <Card className="bg-slate-800 border-slate-700 p-6">
+          <div className="flex items-center justify-between mb-4">
+            <h3 className="text-lg font-semibold text-white">Comment Status</h3>
+          </div>
+          <div className="space-y-3">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <AlertCircle className="w-5 h-5 text-yellow-500" />
+                <span className="text-slate-300">Pending</span>
+              </div>
+              <span className="text-white font-semibold">
+                {stats.comments.pending}
+              </span>
+            </div>
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <CheckCircle className="w-5 h-5 text-green-500" />
+                <span className="text-slate-300">Approved</span>
+              </div>
+              <span className="text-white font-semibold">
+                {stats.comments.approved}
+              </span>
+            </div>
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <XCircle className="w-5 h-5 text-red-500" />
+                <span className="text-slate-300">Rejected</span>
+              </div>
+              <span className="text-white font-semibold">
+                {stats.comments.rejected}
+              </span>
+            </div>
+          </div>
+        </Card>
+
+        <Card className="bg-slate-800 border-slate-700 p-6">
+          <div className="space-y-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-slate-400 text-sm">Pending Tasks</p>
+                <p className="text-3xl font-bold text-white mt-2">
+                  {stats.pendingTasks}
+                </p>
+              </div>
+              <AlertCircle className="w-12 h-12 text-yellow-500 opacity-20" />
+            </div>
+            <div className="flex items-center justify-between pt-4 border-t border-slate-700">
+              <div>
+                <p className="text-slate-400 text-sm">Newsletter Subscribers</p>
+                <p className="text-2xl font-bold text-white mt-1">
+                  {stats.totalSubscribers.toLocaleString()}
+                </p>
+              </div>
+            </div>
+          </div>
         </Card>
       </div>
     </div>
