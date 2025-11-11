@@ -8,7 +8,6 @@ interface ApiOptions {
   data?: unknown;
   requireAuth?: boolean;
 }
-
 export async function universalApi<T = unknown>({
   endpoint,
   method = "GET",

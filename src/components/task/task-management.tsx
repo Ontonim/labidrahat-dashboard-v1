@@ -1,184 +1,112 @@
-"use client";
+"use client"
 
-import { useState } from "react";
-import { Card } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Edit2, Trash2, Plus, Flag } from "lucide-react";
-import Link from "next/link";
+import { useState, useEffect } from "react"
+import { isAdminFromAccess } from "@/utils/isAdmin"
+import type { Task } from "@/types/task/task"
+import TaskList from "@/components/task/task-list"
+import TaskDetailModal from "@/components/task/task-detail-modal"
+import CreateTaskButton from "@/components/task/create-task-button"
+import { getTasks } from "@/actions/task/getTask"
 
-interface Task {
-  id: number;
-  title: string;
-  assignee: string;
-  status: "todo" | "in-progress" | "done";
-  priority: "low" | "medium" | "high";
-  dueDate: string;
-}
+export default function TaskManagement() {
+  const [tasks, setTasks] = useState<Task[]>([])
+  const [activeTab, setActiveTab] = useState<"to do" | "in progress" | "completed">("to do")
+  const [selectedTask, setSelectedTask] = useState<Task | null>(null)
+  const [isModalOpen, setIsModalOpen] = useState(false)
+  const [isLoading, setIsLoading] = useState(true)
+  const [isAdmin, setIsAdmin] = useState(false)
+console.log("isAdmin in task management:", isAdmin);
+  useEffect(() => {
+    setIsAdmin(isAdminFromAccess())
+  }, [])
 
-export function TaskManagement() {
-  const [tasks, setTasks] = useState<Task[]>([
-    {
-      id: 1,
-      title: "Write blog post on AI trends",
-      assignee: "Sarah Johnson",
-      status: "in-progress",
-      priority: "high",
-      dueDate: "2024-10-20",
-    },
-    {
-      id: 2,
-      title: "Review research article",
-      assignee: "Mike Chen",
-      status: "todo",
-      priority: "medium",
-      dueDate: "2024-10-22",
-    },
-    {
-      id: 3,
-      title: "Update newsletter template",
-      assignee: "Emma Davis",
-      status: "done",
-      priority: "low",
-      dueDate: "2024-10-18",
-    },
-    {
-      id: 4,
-      title: "Moderate comments",
-      assignee: "Alex Rodriguez",
-      status: "todo",
-      priority: "medium",
-      dueDate: "2024-10-19",
-    },
-  ]);
-
-  const [searchTerm, setSearchTerm] = useState("");
-
-  const filteredTasks = tasks.filter((task) =>
-    task.title.toLowerCase().includes(searchTerm.toLowerCase())
-  );
-
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case "done":
-        return "bg-green-500/20 text-green-400";
-      case "in-progress":
-        return "bg-blue-500/20 text-blue-400";
-      case "todo":
-        return "bg-gray-500/20 text-gray-400";
-      default:
-        return "";
+  useEffect(() => {
+    const fetchTasks = async () => {
+      try {
+        setIsLoading(true)
+        const result = await getTasks({ status: activeTab })
+        setTasks(result.data || [])
+      } catch (error) {
+        console.error("Failed to fetch tasks:", error)
+      } finally {
+        setIsLoading(false)
+      }
     }
-  };
 
-  const getPriorityColor = (priority: string) => {
-    switch (priority) {
-      case "high":
-        return "text-red-400";
-      case "medium":
-        return "text-yellow-400";
-      case "low":
-        return "text-green-400";
-      default:
-        return "";
-    }
-  };
+    fetchTasks()
+  }, [activeTab])
+
+  const handleTaskClick = (task: Task) => {
+    setSelectedTask(task)
+    setIsModalOpen(true)
+  }
+
+  const handleTaskRefresh = async () => {
+    const result = await getTasks({ status: activeTab })
+    setTasks(result.data || [])
+  }
 
   return (
-    <div className="p-8 space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold text-white">Tasks</h1>
-          <p className="text-slate-400 mt-1">Assign and track team tasks</p>
+    <main className="min-h-screen bg-background">
+      {/* Header */}
+      <div className="border-b border-border">
+        <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
+          <div className="flex items-center justify-between">
+            <div>
+              <h1 className="text-3xl font-bold text-foreground">Tasks</h1>
+              <p className="mt-1 text-sm text-muted-foreground">Manage your teams work</p>
+            </div>
+            <CreateTaskButton onTaskCreated={handleTaskRefresh} />
+          </div>
         </div>
-        <Link href={"/tasks/add"}>
-          <Button className="bg-blue-600 hover:bg-blue-700 text-white gap-2 cursor-pointer">
-            <Plus className="w-4 h-4" />
-            New Task
-          </Button>
-        </Link>
       </div>
 
-      <Input
-        placeholder="Search tasks..."
-        value={searchTerm}
-        onChange={(e) => setSearchTerm(e.target.value)}
-        className="max-w-xs bg-slate-700 border-slate-600 text-white placeholder:text-slate-500"
-      />
-
-      <Card className="bg-slate-800 border-slate-700 overflow-hidden">
-        <div className="overflow-x-auto">
-          <table className="w-full">
-            <thead className="bg-slate-900 border-b border-slate-700">
-              <tr>
-                <th className="px-6 py-3 text-left text-sm font-semibold text-slate-200">
-                  Task
-                </th>
-                <th className="px-6 py-3 text-left text-sm font-semibold text-slate-200">
-                  Assignee
-                </th>
-                <th className="px-6 py-3 text-left text-sm font-semibold text-slate-200">
-                  Status
-                </th>
-                <th className="px-6 py-3 text-left text-sm font-semibold text-slate-200">
-                  Priority
-                </th>
-                <th className="px-6 py-3 text-left text-sm font-semibold text-slate-200">
-                  Due Date
-                </th>
-                <th className="px-6 py-3 text-left text-sm font-semibold text-slate-200">
-                  Actions
-                </th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-slate-700">
-              {filteredTasks.map((task) => (
-                <tr key={task.id} className="hover:bg-slate-700/50 transition">
-                  <td className="px-6 py-4 text-white">{task.title}</td>
-                  <td className="px-6 py-4 text-slate-300">{task.assignee}</td>
-                  <td className="px-6 py-4">
-                    <span
-                      className={`px-3 py-1 rounded-full text-xs font-medium ${getStatusColor(
-                        task.status
-                      )}`}
-                    >
-                      {task.status.replace("-", " ").toUpperCase()}
-                    </span>
-                  </td>
-                  <td className="px-6 py-4">
-                    <span
-                      className={`flex items-center gap-1 ${getPriorityColor(
-                        task.priority
-                      )}`}
-                    >
-                      <Flag className="w-4 h-4" />
-                      {task.priority.charAt(0).toUpperCase() +
-                        task.priority.slice(1)}
-                    </span>
-                  </td>
-                  <td className="px-6 py-4 text-slate-400">{task.dueDate}</td>
-                  <td className="px-6 py-4 flex gap-2">
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      className="text-blue-400 hover:bg-slate-700"
-                    >
-                      <Edit2 className="w-4 h-4" />
-                    </Button>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      className="text-red-400 hover:bg-slate-700"
-                    >
-                      <Trash2 className="w-4 h-4" />
-                    </Button>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+      {/* Content */}
+      <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
+        {/* Tabs */}
+        <div className="mb-6 flex gap-2 border-b border-border">
+          {(["to do", "in progress", "completed"] as const).map((tab) => (
+            <button
+              key={tab}
+              onClick={() => setActiveTab(tab)}
+              className={`px-4 py-2 font-medium text-sm transition-colors border-b-2 ${
+                activeTab === tab
+                  ? "border-primary text-primary"
+                  : "border-transparent text-muted-foreground hover:text-foreground"
+              }`}
+            >
+              {tab.charAt(0).toUpperCase() + tab.slice(1)}
+            </button>
+          ))}
         </div>
-      </Card>
-    </div>
-  );
+
+        {/* Task List */}
+        {isLoading ? (
+          <div className="py-12 text-center">
+            <div className="inline-block h-8 w-8 animate-spin rounded-full border-4 border-border border-t-primary"></div>
+            <p className="mt-4 text-muted-foreground">Loading tasks...</p>
+          </div>
+        ) : tasks.length > 0 ? (
+          <TaskList tasks={tasks} onTaskClick={handleTaskClick} onTaskUpdated={handleTaskRefresh} />
+        ) : (
+          <div className="rounded-lg border border-border bg-card p-8 text-center">
+            <p className="text-muted-foreground">No tasks in this category yet</p>
+          </div>
+        )}
+      </div>
+
+      {/* Detail Modal */}
+      {selectedTask && (
+        <TaskDetailModal
+          task={selectedTask}
+          isOpen={isModalOpen}
+          onClose={() => {
+            setIsModalOpen(false)
+            setSelectedTask(null)
+          }}
+          onTaskUpdated={handleTaskRefresh}
+        />
+      )}
+    </main>
+  )
 }
