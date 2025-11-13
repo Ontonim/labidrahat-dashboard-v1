@@ -9,11 +9,13 @@ import { X } from "lucide-react"
 import { createTask } from "@/actions/task/createTask"
 
 interface CreateTaskModalProps {
+  open: boolean
   onClose: () => void
   onTaskCreated: () => void
 }
 
-export default function CreateTaskModal({ onClose, onTaskCreated }: CreateTaskModalProps) {
+export default function CreateTaskModal({ open, onClose, onTaskCreated }: CreateTaskModalProps) {
+
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
@@ -37,6 +39,8 @@ export default function CreateTaskModal({ onClose, onTaskCreated }: CreateTaskMo
       setIsSubmitting(false)
     }
   }
+    if (!open) return null
+
 
   return (
     <>

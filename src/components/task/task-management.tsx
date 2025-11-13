@@ -1,112 +1,178 @@
 "use client"
 
-import { useState, useEffect } from "react"
-import { isAdminFromAccess } from "@/utils/isAdmin"
-import type { Task } from "@/types/task/task"
-import TaskList from "@/components/task/task-list"
-import TaskDetailModal from "@/components/task/task-detail-modal"
-import CreateTaskButton from "@/components/task/create-task-button"
+import { useEffect, useState } from "react"
+import TaskTabs from "./task-tabs"
+import TaskCard from "./task-card"
+import TaskViewDetails from "./task-view-details"
+import TaskEditModal from "./task-edit-modal"
+import TaskCreateModal from "./task-create-modal"
+import { Plus } from "lucide-react"
 import { getTasks } from "@/actions/task/getTask"
+import { isAdminFromAccess } from "@/lib/adminUtils"
+import { Task } from "@/types/task/task"
 
-export default function TaskManagement() {
+export default function TasksManagement() {
   const [tasks, setTasks] = useState<Task[]>([])
-  const [activeTab, setActiveTab] = useState<"to do" | "in progress" | "completed">("to do")
-  const [selectedTask, setSelectedTask] = useState<Task | null>(null)
-  const [isModalOpen, setIsModalOpen] = useState(false)
-  const [isLoading, setIsLoading] = useState(true)
+  const [filter, setFilter] = useState<"to do" | "in progress" | "completed">("to do")
   const [isAdmin, setIsAdmin] = useState(false)
-console.log("isAdmin in task management:", isAdmin);
-  useEffect(() => {
-    setIsAdmin(isAdminFromAccess())
-  }, [])
+  const [loading, setLoading] = useState(true)
 
-  useEffect(() => {
-    const fetchTasks = async () => {
-      try {
-        setIsLoading(true)
-        const result = await getTasks({ status: activeTab })
-        setTasks(result.data || [])
-      } catch (error) {
-        console.error("Failed to fetch tasks:", error)
-      } finally {
-        setIsLoading(false)
-      }
+  // Modal states
+  const [detailsOpen, setDetailsOpen] = useState(false)
+  const [editOpen, setEditOpen] = useState(false)
+  const [createOpen, setCreateOpen] = useState(false)
+  const [selectedTask, setSelectedTask] = useState<Task | null>(null)
+
+  // Pagination
+  const [page, setPage] = useState(1)
+  const limit = 6
+
+  // Load tasks
+  async function loadTasks() {
+    try {
+      const res = await getTasks()
+      setTasks(res.data || [])
+    } catch (error) {
+      console.error("Failed to load tasks", error)
+    } finally {
+      setLoading(false)
     }
-
-    fetchTasks()
-  }, [activeTab])
-
-  const handleTaskClick = (task: Task) => {
-    setSelectedTask(task)
-    setIsModalOpen(true)
   }
 
-  const handleTaskRefresh = async () => {
-    const result = await getTasks({ status: activeTab })
-    setTasks(result.data || [])
+  useEffect(() => {
+    const adminStatus = isAdminFromAccess()
+    setIsAdmin(adminStatus)
+    loadTasks()
+  }, [])
+
+  // Reset page when filter changes
+  useEffect(() => {
+    setPage(1)
+  }, [filter])
+
+  // Filter tasks by status
+  const statusMap: Record<"to do" | "in progress" | "completed", string[]> = {
+    "to do": ["pending", "to do"],
+    "in progress": ["in progress"],
+    completed: ["completed"],
+  }
+
+  const filteredTasks = tasks.filter((t) => statusMap[filter].includes(t.status.toLowerCase()))
+  const totalPages = Math.ceil(filteredTasks.length / limit)
+  const paginatedTasks = filteredTasks.slice((page - 1) * limit, page * limit)
+
+  // Modal handlers
+  const handleViewDetails = (task: Task) => {
+    setSelectedTask(task)
+    setDetailsOpen(true)
+  }
+
+  const handleEdit = (task: Task) => {
+    setSelectedTask(task)
+    setEditOpen(true)
+  }
+
+  const handleCreate = () => {
+    setCreateOpen(true)
+  }
+
+  const handleTaskUpdated = () => {
+    loadTasks()
+    setEditOpen(false)
+    setDetailsOpen(false)
+    setCreateOpen(false)
+  }
+
+  if (loading) {
+    return (
+      <div className="p-6 text-center">
+        <p className="text-slate-400">Loading tasks...</p>
+      </div>
+    )
   }
 
   return (
-    <main className="min-h-screen bg-background">
+    <div className="p-6 min-h-screen bg-slate-950">
       {/* Header */}
-      <div className="border-b border-border">
-        <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between">
-            <div>
-              <h1 className="text-3xl font-bold text-foreground">Tasks</h1>
-              <p className="mt-1 text-sm text-muted-foreground">Manage your teams work</p>
-            </div>
-            <CreateTaskButton onTaskCreated={handleTaskRefresh} />
-          </div>
+      <div className="flex justify-between items-start mb-8">
+        <div>
+          <h1 className="text-3xl font-bold text-white mb-4">Tasks</h1>
+          <TaskTabs active={filter} onChange={setFilter} />
         </div>
+
+        {isAdmin && (
+          <button
+            onClick={handleCreate}
+            className="flex items-center gap-2 px-4 py-2 rounded-lg font-medium bg-blue-600 hover:bg-blue-700 text-white transition"
+          >
+            <Plus size={20} />
+            New Task
+          </button>
+        )}
       </div>
 
-      {/* Content */}
-      <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
-        {/* Tabs */}
-        <div className="mb-6 flex gap-2 border-b border-border">
-          {(["to do", "in progress", "completed"] as const).map((tab) => (
-            <button
-              key={tab}
-              onClick={() => setActiveTab(tab)}
-              className={`px-4 py-2 font-medium text-sm transition-colors border-b-2 ${
-                activeTab === tab
-                  ? "border-primary text-primary"
-                  : "border-transparent text-muted-foreground hover:text-foreground"
-              }`}
-            >
-              {tab.charAt(0).toUpperCase() + tab.slice(1)}
-            </button>
-          ))}
-        </div>
-
-        {/* Task List */}
-        {isLoading ? (
-          <div className="py-12 text-center">
-            <div className="inline-block h-8 w-8 animate-spin rounded-full border-4 border-border border-t-primary"></div>
-            <p className="mt-4 text-muted-foreground">Loading tasks...</p>
-          </div>
-        ) : tasks.length > 0 ? (
-          <TaskList tasks={tasks} onTaskClick={handleTaskClick} onTaskUpdated={handleTaskRefresh} />
+      {/* Tasks Grid */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-8">
+        {paginatedTasks.length > 0 ? (
+          paginatedTasks.map((task) => (
+            <TaskCard
+              key={task._id}
+              task={task}
+              onViewDetails={handleViewDetails}
+              onEdit={handleEdit}
+              isAdmin={isAdmin}
+            />
+          ))
         ) : (
-          <div className="rounded-lg border border-border bg-card p-8 text-center">
-            <p className="text-muted-foreground">No tasks in this category yet</p>
+          <div className="col-span-full text-center py-12">
+            <p className="text-slate-400">No tasks found in this category.</p>
           </div>
         )}
       </div>
 
-      {/* Detail Modal */}
-      {selectedTask && (
-        <TaskDetailModal
-          task={selectedTask}
-          isOpen={isModalOpen}
-          onClose={() => {
-            setIsModalOpen(false)
-            setSelectedTask(null)
-          }}
-          onTaskUpdated={handleTaskRefresh}
-        />
+      {/* Pagination */}
+      {totalPages > 1 && (
+        <div className="flex justify-center items-center gap-3 mt-8">
+          <button
+            onClick={() => setPage(Math.max(1, page - 1))}
+            disabled={page === 1}
+            className="px-4 py-2 bg-slate-700 hover:bg-slate-600 disabled:opacity-50 disabled:cursor-not-allowed text-white rounded-lg transition"
+          >
+            Previous
+          </button>
+          <span className="text-white font-medium">
+            Page {page} of {totalPages}
+          </span>
+          <button
+            onClick={() => setPage(Math.min(totalPages, page + 1))}
+            disabled={page === totalPages}
+            className="px-4 py-2 bg-slate-700 hover:bg-slate-600 disabled:opacity-50 disabled:cursor-not-allowed text-white rounded-lg transition"
+          >
+            Next
+          </button>
+        </div>
       )}
-    </main>
+
+      {/* Modals */}
+      <TaskViewDetails
+        open={detailsOpen}
+        onClose={() => setDetailsOpen(false)}
+        task={selectedTask as Task}
+        onEdit={() => {
+          setDetailsOpen(false)
+          setEditOpen(true)
+        }}
+        isAdmin={isAdmin}
+      />
+
+      <TaskEditModal
+        open={editOpen}
+        onClose={() => setEditOpen(false)}
+        task={selectedTask as Task}
+        onTaskUpdated={handleTaskUpdated}
+      />
+
+      <TaskCreateModal open={createOpen} onClose={() => setCreateOpen(false)} onTaskCreated={handleTaskUpdated} />
+    </div>
   )
 }
