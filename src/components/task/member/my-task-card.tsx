@@ -154,8 +154,7 @@ export default function MyTaskCard({
         open={showDetailsModal}
         onClose={() => setShowDetailsModal(false)}
         task={task as Task}
-        onEdit={() => {}}
-        isAdmin={false}
+    
       />
     </>
   );

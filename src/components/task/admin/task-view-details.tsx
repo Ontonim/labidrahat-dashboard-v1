@@ -7,14 +7,12 @@ export default function TaskDetailsModal({
   open,
   onClose,
   task,
-  onEdit,
-  isAdmin,
+  
 }: {
   open: boolean
   onClose: () => void
   task: Task
-  onEdit: (task: Task) => void
-  isAdmin: boolean
+
 }) {
   if (!open || !task) return null
 

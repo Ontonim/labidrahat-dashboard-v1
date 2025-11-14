@@ -6,13 +6,14 @@ import { useState } from "react"
 import TaskEditModal from "./task-edit-modal"
 import TaskDetailsModal from './task-view-details'
 import { deleteTask } from '@/actions/task/deleteTask'
+import { Task } from '@/types/task/task'
 
 export default function TaskCard({
   task,
-  onRefresh, // rename onEdit to onRefresh to make intention clear
+  onRefresh, 
   isAdmin,
 }: {
-  task: any
+  task: Task
   onRefresh: () => void
   isAdmin: boolean
 }) {
@@ -23,7 +24,7 @@ export default function TaskCard({
   const handleDelete = async () => {
     setDeleting(true)
     try {
-      await deleteTask(task._id || task.id)
+      await deleteTask(task._id )
       onRefresh() // only refresh list
     } catch (error) {
       console.error("Failed to delete task", error)
@@ -135,8 +136,6 @@ export default function TaskCard({
         open={detailsOpen}
         onClose={() => setDetailsOpen(false)}
         task={task}
-        isAdmin={isAdmin}
-        onEdit={() => setEditOpen(true)}
       />
 
       <TaskEditModal

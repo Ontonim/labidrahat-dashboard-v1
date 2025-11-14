@@ -1,8 +1,7 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { ChevronRight } from 'lucide-react'
-import Link from "next/link"
+
 import TaskTabs from "../admin/task-tabs"
 import MyTasksList from "./my-tasks-list"
 import { getEmailFromToken } from "@/utils/userEmail"

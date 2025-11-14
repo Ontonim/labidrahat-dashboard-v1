@@ -22,12 +22,18 @@ export async function deleteTask(taskId: string) {
 
     return result
 
-  } catch (error: any) {
-    console.error("❌ Delete task error:", error)
+  } catch (err: unknown) {
+    console.error("❌ Delete task error:", err)
+    
+    let errorMessage = "Failed to delete task"
+    
+    if (err instanceof Error) {
+      errorMessage = err.message || errorMessage
+    }
     
     return {
       success: false,
-      message: error.message || "Failed to delete task",
+      message: errorMessage,
       data: null
     }
   }

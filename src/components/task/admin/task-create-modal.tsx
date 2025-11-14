@@ -23,6 +23,7 @@ import { createTask } from "@/actions/task/createTask"
 import { Badge } from "@/components/ui/badge"
 import { getAllMemberEmails } from "@/actions/team-members/getMembers"
 import { createTaskSchema } from "@/components/task/TaskZodSchema/TaskZodSchema"
+import { ZodError } from "zod"
 
 interface CreateTaskModalProps {
   open: boolean
@@ -37,6 +38,11 @@ interface FormErrors {
   priority?: string
   dueDate?: string
   general?: string
+}
+
+interface ZodFieldError {
+  path: (string | number)[]
+  message: string
 }
 
 export default function TaskCreateModal({ open, onClose, onTaskCreated }: CreateTaskModalProps) {
@@ -101,28 +107,30 @@ export default function TaskCreateModal({ open, onClose, onTaskCreated }: Create
     return members.filter(member => !selectedAssignees.includes(member))
   }
 
-  const validateForm = (): boolean => {
-    try {
-      const formData = {
-        title: title.trim(),
-        description: description.trim() || undefined,
-        assigneeEmails: selectedAssignees,
-        priority: priority as "low" | "medium" | "high",
-        dueDate: dueDate ? dueDate.toISOString() : undefined,
-        tags: [] // Optional, empty array দিলাম
-      }
+const validateForm = (): boolean => {
+  try {
+    const formData = {
+      title: title.trim(),
+      description: description.trim() || undefined,
+      assigneeEmails: selectedAssignees,
+      priority: priority as "low" | "medium" | "high",
+      dueDate: dueDate ? dueDate.toISOString() : undefined,
+      tags: [] // Optional, empty array দিলাম
+    }
 
-      // Zod validation
-      createTaskSchema.parse(formData)
-      setErrors({})
-      return true
-    } catch (error: any) {
-      // Zod errors process করুন
-      const newErrors: FormErrors = {}
-      
-      if (error.errors) {
-        error.errors.forEach((err: any) => {
-          const field = err.path[0]
+    // Zod validation
+    createTaskSchema.parse(formData)
+    setErrors({})
+    return true
+  } catch (error: unknown) {
+    // Zod errors process করুন
+    const newErrors: FormErrors = {}
+    
+    if (error instanceof ZodError) {
+      // ZodError has an 'issues' property that contains the validation errors
+      error.issues.forEach((err) => {
+        const field = err.path[0]
+        if (typeof field === 'string') {
           switch (field) {
             case 'title':
               newErrors.title = err.message
@@ -142,15 +150,20 @@ export default function TaskCreateModal({ open, onClose, onTaskCreated }: Create
             default:
               newErrors.general = err.message
           }
-        })
-      } else {
-        newErrors.general = error.message || "Validation failed"
-      }
-      
-      setErrors(newErrors)
-      return false
+        } else {
+          newErrors.general = err.message
+        }
+      })
+    } else if (error instanceof Error) {
+      newErrors.general = error.message || "Validation failed"
+    } else {
+      newErrors.general = "Validation failed"
     }
+    
+    setErrors(newErrors)
+    return false
   }
+}
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
@@ -183,9 +196,11 @@ export default function TaskCreateModal({ open, onClose, onTaskCreated }: Create
       } else {
         setErrors({ general: result.message || "Failed to create task" })
       }
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error("Create task error:", err)
-      setErrors({ general: err?.message || "An error occurred while creating task" })
+      setErrors({ 
+        general: err instanceof Error ? err.message : "An error occurred while creating task" 
+      })
     } finally {
       setIsSubmitting(false)
     }

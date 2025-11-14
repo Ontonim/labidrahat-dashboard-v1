@@ -2,9 +2,8 @@
 
 import { useEffect, useState } from "react"
 import TaskTabs from "./task-tabs"
-import TaskCard from "./task-card" // আপনার updated TaskCard import করুন
-import TaskViewDetails from "./task-view-details"
-import TaskEditModal from "./task-edit-modal"
+import TaskCard from "./task-card" 
+
 import TaskCreateModal from "./task-create-modal"
 import { Plus } from "lucide-react"
 import { getTasks } from "@/actions/task/getTask"
@@ -18,10 +17,7 @@ export default function AdminTasksManagement() {
   const [loading, setLoading] = useState(true)
 
   // Modal states
-  const [detailsOpen, setDetailsOpen] = useState(false)
-  const [editOpen, setEditOpen] = useState(false)
   const [createOpen, setCreateOpen] = useState(false)
-  const [selectedTask, setSelectedTask] = useState<Task | null>(null)
 
   // Pagination
   const [page, setPage] = useState(1)
@@ -61,25 +57,13 @@ export default function AdminTasksManagement() {
   const totalPages = Math.ceil(filteredTasks.length / limit)
   const paginatedTasks = filteredTasks.slice((page - 1) * limit, page * limit)
 
-  // Modal handlers
-  const handleViewDetails = (task: Task) => {
-    setSelectedTask(task)
-    setDetailsOpen(true)
-  }
-
-  const handleEdit = (task: Task) => {
-    setSelectedTask(task)
-    setEditOpen(true)
-  }
-
   const handleCreate = () => {
     setCreateOpen(true)
   }
 
   const handleTaskUpdated = () => {
     loadTasks()
-    setEditOpen(false)
-    setDetailsOpen(false)
+   
     setCreateOpen(false)
   }
 

@@ -19,6 +19,12 @@ interface Task {
   updatedAt: string
 }
 
+interface ApiResponse {
+  success: boolean
+  data: Task[]
+  message?: string
+}
+
 export default function MyTasksList({ filter, email }: { filter: "to do" | "in progress" | "completed"; email: string }) {
   const [tasks, setTasks] = useState<Task[]>([])
   const [loading, setLoading] = useState(true)
@@ -35,8 +41,8 @@ export default function MyTasksList({ filter, email }: { filter: "to do" | "in p
       const res = await getTasksByEmail()
 
       // Normalize response: support both { success, data } and raw array responses
-      if (res && typeof res === "object" && "data" in res && Array.isArray((res as any).data)) {
-        setTasks((res as any).data as Task[])
+      if (res && typeof res === "object" && "data" in res && Array.isArray((res as ApiResponse).data)) {
+        setTasks((res as ApiResponse).data)
       } else if (Array.isArray(res)) {
         setTasks(res as Task[])
       } else {
@@ -91,14 +97,14 @@ export default function MyTasksList({ filter, email }: { filter: "to do" | "in p
       <div className="max-w-7xl mx-auto px-4">
         <div className="bg-slate-800 border border-slate-700 rounded-lg p-12 text-center">
           <p className="text-gray-400 text-lg">No {filter} tasks</p>
-          <p className="text-gray-500 text-sm mt-2">You don't have any tasks in this status</p>
+          <p className="text-gray-500 text-sm mt-2">You don&apos;t have any tasks in this status</p>
         </div>
       </div>
     )
   }
 
   return (
-    <div className=" x-auto px-4">
+    <div className="x-auto px-4">
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
         {filteredTasks.map((task) => (
           <MyTaskCard key={task._id || task.id} task={task} onStatusUpdate={handleStatusUpdate} />
