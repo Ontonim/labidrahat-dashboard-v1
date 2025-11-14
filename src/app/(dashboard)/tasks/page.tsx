@@ -1,9 +1,9 @@
-import TaskManagement from "@/components/task/task-management";
+import TasksManagement from "@/components/task/task-managment";
 
 export default function Page() {
   return (
     <div>
-    <TaskManagement />
+    <TasksManagement />
     </div>
   );
 }

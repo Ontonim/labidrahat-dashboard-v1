@@ -4,6 +4,7 @@ import type { TaskStatus, TaskPriority } from "@/types/task/task"
 
 interface UpdateTaskPayload {
   title?: string
+  
   description?: string
   assigneeEmails?: string[]
   status?: TaskStatus
@@ -44,3 +45,6 @@ export async function updateTask(payloadRaw: UpdateTaskPayload, taskId: string) 
     requireAuth: true,
   })
 }
+
+
+

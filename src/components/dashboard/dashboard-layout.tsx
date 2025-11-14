@@ -10,7 +10,7 @@ import { CommentManagement } from "../comment/comment-management";
 import { SettingsPage } from "../settings/settings";
 import { Sidebar } from "./sidebar";
 import { TopBar } from "./topbar";
-import TaskManagement from "../task/task-management";
+import TasksManagement from "../task/task-managment";
 
 interface DashboardLayoutProps {
   user: { email: string; name: string } | null;
@@ -30,7 +30,7 @@ export function DashboardLayout({ user, onLogout }: DashboardLayoutProps) {
       case "team":
         return <TeamManagement />;
       case "tasks":
-        return <TaskManagement />;
+        return <TasksManagement />;
       case "email":
         return <EmailManagement />;
       case "comments":

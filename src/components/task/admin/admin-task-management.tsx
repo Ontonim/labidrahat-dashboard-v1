@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react"
 import TaskTabs from "./task-tabs"
-import TaskCard from "./task-card"
+import TaskCard from "./task-card" // আপনার updated TaskCard import করুন
 import TaskViewDetails from "./task-view-details"
 import TaskEditModal from "./task-edit-modal"
 import TaskCreateModal from "./task-create-modal"
@@ -11,7 +11,7 @@ import { getTasks } from "@/actions/task/getTask"
 import { isAdminFromAccess } from "@/lib/adminUtils"
 import { Task } from "@/types/task/task"
 
-export default function TasksManagement() {
+export default function AdminTasksManagement() {
   const [tasks, setTasks] = useState<Task[]>([])
   const [filter, setFilter] = useState<"to do" | "in progress" | "completed">("to do")
   const [isAdmin, setIsAdmin] = useState(false)
@@ -118,9 +118,9 @@ export default function TasksManagement() {
             <TaskCard
               key={task._id}
               task={task}
-              onViewDetails={handleViewDetails}
-              onEdit={handleEdit}
+              onRefresh={loadTasks} // ✅ শুধুমাত্র required prop pass করুন
               isAdmin={isAdmin}
+              // ❌ onViewDetails এবং onEdit remove করুন - TaskCard এ এখন এগুলো নেই
             />
           ))
         ) : (
@@ -153,7 +153,9 @@ export default function TasksManagement() {
         </div>
       )}
 
-      {/* Modals */}
+      {/* Global Modals - এখন শুধুমাত্র তখনই render করবে যখন TaskCard এর internal modals use না হয় */}
+      {/* তবে আপনার TaskCard internal modals use করছে, তাই সম্ভবত এগুলো remove করতে পারেন */}
+      {/*
       <TaskViewDetails
         open={detailsOpen}
         onClose={() => setDetailsOpen(false)}
@@ -171,6 +173,7 @@ export default function TasksManagement() {
         task={selectedTask as Task}
         onTaskUpdated={handleTaskUpdated}
       />
+      */}
 
       <TaskCreateModal open={createOpen} onClose={() => setCreateOpen(false)} onTaskCreated={handleTaskUpdated} />
     </div>
