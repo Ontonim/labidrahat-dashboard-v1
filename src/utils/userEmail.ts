@@ -2,11 +2,9 @@
 
 import { getCookie } from "@/lib/adminUtils";
 
-
 export function getEmailFromToken(): string | null {
   const token = getCookie("accessToken");
   if (!token) {
-    console.log("❌ No accessToken found");
     return null;
   }
 
@@ -30,16 +28,9 @@ export function getEmailFromToken(): string | null {
     // Decode payload
     const decoded = atob(payload);
     const data = JSON.parse(decoded);
-
     // Extract email
     const email =
-      data.email ||
-      data.userEmail ||
-      data.sub ||
-      data.username ||
-      null;
-
-    console.log("📧 Decoded email:", email);
+      data.email || data.userEmail || data.sub || data.username || null;
 
     return email;
   } catch (err) {

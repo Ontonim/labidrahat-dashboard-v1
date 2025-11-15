@@ -4,7 +4,7 @@ import { universalApi } from "../universal-api"
 interface GetTasksParams {
   page?: number
   limit?: number
-  status?: string // server-side filter
+  status?: string 
 }
 
 export async function getTasks(params?: GetTasksParams): Promise<{ data: Task[]; message: string }> {

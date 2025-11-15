@@ -159,45 +159,38 @@ export async function updateMemberStatus(
 }
 
 export interface MemberEmailResponse {
-  StatusCode: number
-  success: boolean
-  message: string
-  data: string[]
+  StatusCode: number;
+  success: boolean;
+  message: string;
+  data: string[];
 }
 
-export async function getAllMemberEmails(): Promise<{ 
-  data: string[]; 
-  message: string 
+export async function getAllMemberEmails(): Promise<{
+  data: string[];
+  message: string;
 }> {
   try {
-    console.log("🔍 Fetching all member emails...");
-
     const result = await universalApi<MemberEmailResponse>({
       endpoint: `/members/emails`,
       method: "GET",
       requireAuth: true,
-    })
-
-    console.log("📡 Members Emails API Response:", result);
-
+    });
     if (!result.success) {
-      return { 
-        data: [], 
-        message: result.message || "Failed to fetch member emails" 
-      }
+      return {
+        data: [],
+        message: result.message || "Failed to fetch member emails",
+      };
     }
 
-    return { 
-      data: result?.data?.data || [], 
-      message: result?.data?.message || "Member emails fetched successfully" 
-    }
-    
+    return {
+      data: result?.data?.data || [],
+      message: result?.data?.message || "Member emails fetched successfully",
+    };
   } catch (error) {
     console.error("❌ Error fetching member emails:", error);
-    return { 
-      data: [], 
-      message: "Failed to fetch member emails" 
-    }
+    return {
+      data: [],
+      message: "Failed to fetch member emails",
+    };
   }
 }
-

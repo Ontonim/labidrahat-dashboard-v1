@@ -7,7 +7,7 @@ import { TeamManagement } from "../team/team-management";
 
 import { EmailManagement } from "../email/email-management";
 import { CommentManagement } from "../comment/comment-management";
-import { SettingsPage } from "../settings/settings";
+// import { SettingsPage } from "../settings/settings";
 import { Sidebar } from "./sidebar";
 import { TopBar } from "./topbar";
 import TasksManagement from "../task/task-managment";
@@ -17,9 +17,8 @@ interface DashboardLayoutProps {
   onLogout: () => void;
 }
 
-export function DashboardLayout({ user, onLogout }: DashboardLayoutProps) {
+export function DashboardLayout({ user }: DashboardLayoutProps) {
   const [currentPage, setCurrentPage] = useState("dashboard");
-  const [darkMode, setDarkMode] = useState(true);
 
   const renderPage = () => {
     switch (currentPage) {
@@ -35,15 +34,15 @@ export function DashboardLayout({ user, onLogout }: DashboardLayoutProps) {
         return <EmailManagement />;
       case "comments":
         return <CommentManagement />;
-      case "settings":
-        return <SettingsPage />;
+      // case "settings":
+      //   return <SettingsPage />;
       default:
         return <DashboardOverview />;
     }
   };
 
   return (
-    <div className={darkMode ? "dark" : ""}>
+    <div>
       <div className="flex h-screen bg-background text-foreground">
         <Sidebar currentPage={currentPage} onPageChange={setCurrentPage} />
         <div className="flex-1 flex flex-col overflow-hidden">

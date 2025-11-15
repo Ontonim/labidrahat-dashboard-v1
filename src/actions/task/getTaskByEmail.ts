@@ -17,12 +17,9 @@ export async function getTasksByEmail(params?: GetTasksParams): Promise<{ data: 
     console.error("❌ No email found in token");
     return { data: [], message: "User email not found" };
   }
-
-  console.log("📧 Using email:", email);
-
   // Build query parameters
   const query = new URLSearchParams()
-  query.append("email", email) // ✅ Email parameter add করুন
+  query.append("email", email)
   
   if (params?.page) query.append("page", params.page.toString())
   if (params?.limit) query.append("limit", params.limit.toString())
@@ -36,12 +33,10 @@ export async function getTasksByEmail(params?: GetTasksParams): Promise<{ data: 
     message: string
     data: Task[]
   }>({
-    endpoint: `/tasks/email?${query.toString()}`, // ✅ /tasks/email endpoint
+    endpoint: `/tasks/email?${query.toString()}`,
     method: "GET",
     requireAuth: true,
   })
-
-  console.log("📡 API Response:", result);
 
   if (!result.success) {
     return { data: [], message: result.message || "Failed to fetch tasks" }
