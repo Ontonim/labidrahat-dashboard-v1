@@ -1,78 +1,85 @@
-"use client"
+"use client";
 
-import { useEffect, useState } from "react"
-import TaskTabs from "./task-tabs"
-import TaskCard from "./task-card" 
+import { useEffect, useState } from "react";
+import TaskTabs from "./task-tabs";
+import TaskCard from "./task-card";
 
-import TaskCreateModal from "./task-create-modal"
-import { Plus } from "lucide-react"
-import { getTasks } from "@/actions/task/getTask"
-import { isAdminFromAccess } from "@/lib/adminUtils"
-import { Task } from "@/types/task/task"
+import TaskCreateModal from "./task-create-modal";
+import { Loader2, Plus } from "lucide-react";
+import { getTasks } from "@/actions/task/getTask";
+import { isAdminFromAccess } from "@/lib/adminUtils";
+import { Task } from "@/types/task/task";
 
 export default function AdminTasksManagement() {
-  const [tasks, setTasks] = useState<Task[]>([])
-  const [filter, setFilter] = useState<"to do" | "in progress" | "completed">("to do")
-  const [isAdmin, setIsAdmin] = useState(false)
-  const [loading, setLoading] = useState(true)
+  const [tasks, setTasks] = useState<Task[]>([]);
+  const [filter, setFilter] = useState<"to do" | "in progress" | "completed">(
+    "to do"
+  );
+  const [isAdmin, setIsAdmin] = useState(false);
+  const [loading, setLoading] = useState(true);
 
   // Modal states
-  const [createOpen, setCreateOpen] = useState(false)
+  const [createOpen, setCreateOpen] = useState(false);
 
   // Pagination
-  const [page, setPage] = useState(1)
-  const limit = 6
+  const [page, setPage] = useState(1);
+  const limit = 6;
 
   // Load tasks
   async function loadTasks() {
     try {
-      const res = await getTasks()
-      setTasks(res.data || [])
+      const res = await getTasks();
+      setTasks(res.data || []);
     } catch (error) {
-      console.error("Failed to load tasks", error)
+      console.error("Failed to load tasks", error);
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
   }
 
   useEffect(() => {
-    const adminStatus = isAdminFromAccess()
-    setIsAdmin(adminStatus)
-    loadTasks()
-  }, [])
+    const adminStatus = isAdminFromAccess();
+    setIsAdmin(adminStatus);
+    loadTasks();
+  }, []);
 
   // Reset page when filter changes
   useEffect(() => {
-    setPage(1)
-  }, [filter])
+    setPage(1);
+  }, [filter]);
 
   // Filter tasks by status
   const statusMap: Record<"to do" | "in progress" | "completed", string[]> = {
     "to do": ["pending", "to do"],
     "in progress": ["in progress"],
     completed: ["completed"],
-  }
+  };
 
-  const filteredTasks = tasks.filter((t) => statusMap[filter].includes(t.status.toLowerCase()))
-  const totalPages = Math.ceil(filteredTasks.length / limit)
-  const paginatedTasks = filteredTasks.slice((page - 1) * limit, page * limit)
+  const filteredTasks = tasks.filter((t) =>
+    statusMap[filter].includes(t.status.toLowerCase())
+  );
+  const totalPages = Math.ceil(filteredTasks.length / limit);
+  const paginatedTasks = filteredTasks.slice((page - 1) * limit, page * limit);
 
   const handleCreate = () => {
-    setCreateOpen(true)
-  }
+    setCreateOpen(true);
+  };
 
   const handleTaskUpdated = () => {
-    loadTasks()
-   
-    setCreateOpen(false)
-  }
+    loadTasks();
+
+    setCreateOpen(false);
+  };
 
   if (loading) {
     return (
-      <div className="p-6 text-center">
-        <p className="text-slate-400">Loading tasks...</p>
+      <div className="p-8 flex items-center justify-center min-h-screen">
+        <div className="text-center">
+          <Loader2 className="w-8 h-8 animate-spin text-blue-500 mx-auto mb-2" />
+          <p className="text-slate-400">Loading Tasks...</p>
+        </div>
       </div>
-    )
+    );
   }
 
   return (
@@ -159,7 +166,11 @@ export default function AdminTasksManagement() {
       />
       */}
 
-      <TaskCreateModal open={createOpen} onClose={() => setCreateOpen(false)} onTaskCreated={handleTaskUpdated} />
+      <TaskCreateModal
+        open={createOpen}
+        onClose={() => setCreateOpen(false)}
+        onTaskCreated={handleTaskUpdated}
+      />
     </div>
-  )
+  );
 }

@@ -6,17 +6,11 @@ import { universalApi } from "../universal-api"
 
 export async function deleteTask(taskId: string) {
   try {
-    console.log("🗑️ Deleting task:", taskId)
-
     const result = await universalApi({
       endpoint: `/tasks/${taskId}`,
       method: "DELETE",
       requireAuth: true,
     })
-
-    console.log("✅ Delete task result:", result)
-
-    // Cache revalidate করুন
     revalidateTag("tasks")
     revalidateTag(`task-${taskId}`)
 
