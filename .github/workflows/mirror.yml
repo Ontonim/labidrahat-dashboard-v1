@@ -1,0 +1,36 @@
+name: Mirror to personal repo
+
+on:
+  push:
+    branches:
+      - main
+
+# We don't rely on GITHUB_TOKEN for pushing to the target repo
+permissions:
+  contents: read
+
+jobs:
+  mirror:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Set git user
+        run: |
+          git config user.name "Labid Rahat"
+          git config user.email "labidrahat1@gmail.com"
+
+      - name: Add PAT remote and push mirror
+        env:
+          PAT: ${{ secrets.MIRROR_PAT }}
+        run: |
+          # remove existing 'mirror' remote if it somehow exists (prevents errors)
+          git remote remove mirror || true
+          # add remote that uses the PAT for authentication
+          git remote add mirror https://x-access-token:${PAT}@github.com/labidrahat/dashboard-v1.git
+          # push all refs (branches + tags)
+          git push --mirror mirror
